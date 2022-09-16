@@ -4,9 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 uuidv4();
 
 const contactsPath = path.join(__dirname, "db/contacts.json");
-
-// const updateContactList = async(contacts)=> await fs.writeFile(contactsPath, JSON.stringify(contacts, null,2));
-
+const updateContacts = async (contacts) => await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
 
 const listContacts = async () => {
   try {
@@ -20,37 +18,55 @@ const listContacts = async () => {
 };
 
 const getContactById = async (contactId) => {
-  const contacts = await listContacts();
-  const result = contacts.find((contact) => contactId === contact.id);
-  if (!result) {
-    return null;
+  try {
+    const contacts = await listContacts();
+    const result = contacts.find((contact) => contactId === contact.id);
+    if (!result) {
+      return null;
+    }
+    return result;
+  } catch (e) {
+    console.log("error", e.message);
+    return e;
   }
-  return result;
 };
 
 const removeContact = async (contactId) => {
-  const contacts = await listContacts();
-  const index = contacts.findIndex((contact) => contactId === contact.id);
-  if (index === -1) {
-    return null;
-  }
-  const [result] = contacts.splice(index, 1);
+  try {
+    const contacts = await listContacts();
+    const index = contacts.findIndex((contact) => contactId === contact.id);
+    if (index === -1) {
+      return null;
+    };
+    const [result] = contacts.splice(index, 1);
 
-  return result;
+await updateContacts(contacts);
+
+    return result;
+  } catch (e) {
+    console.log("error", e.message);
+    return e;
+  }
 };
 
-const addContact = async (name, email, phone) => {
-  const contacts = await listContacts();
+const addContact = async ( name, email, phone ) => {
+  try {
+    const contacts = await listContacts();
+    const newContact = {
+      id: uuidv4(),
+      name,
+      email,
+      phone,
+    };
 
-  const newContact = {
-    id: uuidv4(),
-    name,
-    email,
-    phone,
-  };
-  contacts.push(newContact);
-//    await fs.writeFile(contactsPath, JSON.stringify(contacts));
-  return newContact;
+    
+    contacts.push(newContact);
+    await updateContacts(contacts);
+    return newContact;
+  } catch (e) {
+    console.log("error", e.message);
+    return e;
+  }
 };
 
 module.exports = {
@@ -59,3 +75,14 @@ module.exports = {
   removeContact,
   addContact,
 };
+// # Отримуємо і виводимо весь список контактів у вигляді таблиці (console.table)
+// node index.js --action="list"
+
+// # Отримуємо контакт по id
+// node index.js --action="get" --id=5
+
+// # Добавялем контакт
+// node index.js --action="add" --name="Mango" --email="mango@gmail.com" --phone="322-22-22"
+
+// # Видаляємо контакт
+// node index.js --action="remove" --id=3

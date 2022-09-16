@@ -4,8 +4,39 @@ const {
   removeContact,
   addContact,
 } = require("./contacts.js");
+
 const { Command } = require("commander");
 const program = new Command();
+
+const invokeAction = async ({ action, id, name, email, phone }) => {
+  switch (action) {
+    case "list":
+      const contacts = await listContacts();
+      console.table(contacts);
+      break;
+
+    case "get":
+      const contact = await getContactById(id);
+      console.log(contact);
+      if (!contact) {
+        throw new Error(`Contact with ${id} does not exist`);
+      }
+      break;
+
+    case "add":
+      const newContact = await addContact(name, email, phone);
+      console.log("newContact", newContact);
+      break;
+
+    case "remove":
+      const removeContactById = await removeContact(id);
+      console.log(removeContactById);
+      break;
+
+    default:
+      console.warn("\x1B[31m Unknown action type!");
+  }
+};
 program
   .option("-a, --action <type>", "choose action")
   .option("-i, --id <type>", "user id")
@@ -17,36 +48,4 @@ program.parse(process.argv);
 
 const argv = program.opts();
 
-const invokeAction = async ({ action, id, name, email, phone }) => {
-  switch (action) {
-    case "list":
-      const contacts = await listContacts();
-      break;
-
-    case "get":
-      const contact = await getContactById(id);
-      if (!contact) {
-        throw new Error("Contact does not exist");
-      }
-      break;
-
-    case "add":
-      const newContact = await addContact({ name, email, phone });
-      console.log("newContact", newContact);
-      break;
-
-    case "remove":
-      const removeContactById = await removeContact(id);
-      break;
-
-    default:
-      console.warn("\x1B[31m Unknown action type!");
-  }
-};
-// let name= 'nknl';
-// let email = 'dfkjd@tr.eu';
-// let phone = '86586059';
-// invokeAction({action: "list"});
-// invokeAction({action: "get", id});
-// invokeAction({action: "remove", id});
-invokeAction({ action: "add", name, email, phone });
+invokeAction(argv);
